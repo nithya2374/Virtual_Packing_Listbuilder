@@ -1,15 +1,37 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import './index.css'
+import tripImg from './assets/trip-image.jpg';
+import resortImg from './assets/resort-image.jpg';
+import TripForm from './components/Tripform';
+import PackingList from './components/PackingList';
+import { useState } from 'react';
+import templates from './data/templates';
 
-function App() {
+export default function App() {
+  const [packingItems, setPackingItems] = useState(null);
+
+  const handleTripSubmit = ({ tripType, duration, location }) => {
+    const base = templates[tripType];
+    const items = {};
+
+    for (let [category, things] of Object.entries(base)) {
+      items[category] = [...things, ...(duration > 5 ? [`Extra ${category}`] : [])];
+    }
+
+    setPackingItems(items);
+  };
+
   return (
-    <div className="bg-blue-500 text-white p-6 rounded-xl text-center">
-      Tailwind is working 🎉
+    <div className="p-4 bg-gray-100 min-h-screen">
+      {/* Images */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+        <img src={tripImg} alt="Trip" className="w-1/2 rounded" />
+        <img src={resortImg} alt="Resort" className="w-1/2 rounded" />
+      </div>
+
+      {/* Form + Packing List */}
+
+      <TripForm onSubmit={handleTripSubmit} />
+      {packingItems && <PackingList items={packingItems} />}
     </div>
   );
 }
-
-export default App;
+console.log('tripImg path:', tripImg);
