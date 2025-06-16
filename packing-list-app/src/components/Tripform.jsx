@@ -54,7 +54,7 @@ className="bg-white p-6 rounded-2xl shadow-md max-w-md mx-auto space-y-4"
 
   <button
     type="submit"
-    className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+    className="w-full bg-violet-600 text-white py-2 rounded hover:bg-blue-700 transition"
   >
     Build Packing List
   </button>

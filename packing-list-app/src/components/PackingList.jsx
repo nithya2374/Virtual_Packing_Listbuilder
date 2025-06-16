@@ -8,11 +8,9 @@ export default function PackingList({ items }) {
   return (
     <div className="p-4">
       {/* Title at the center top */}
-      <h1 className="text-3xl font-bold text-center mb-6">My Packing List 🧳</h1>
+      <h1 className="text-3xl font-bold text-center mb-6">Packing Checklist</h1>
 
-      {/* Subheading */}
-      <h2 className="text-2xl font-bold mb-4">Packing Checklist</h2>
-
+      
       {/* Checklist Items */}
       {Object.entries(items).map(([category, things]) => (
         <div key={category} className="mb-4">

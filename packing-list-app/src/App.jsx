@@ -1,12 +1,13 @@
+import { useState, useRef } from 'react';
 import tripImg from './assets/trip-image.jpg';
 import resortImg from './assets/resort-image.jpg';
 import TripForm from './components/Tripform';
 import PackingList from './components/PackingList';
-import { useState } from 'react';
 import templates from './data/templates';
 
 export default function App() {
   const [packingItems, setPackingItems] = useState(null);
+  const packingListRef = useRef(null); // ⬅️ Ref for scroll target
 
   const handleTripSubmit = ({ tripType, duration, location }) => {
     const base = templates[tripType];
@@ -17,6 +18,13 @@ export default function App() {
     }
 
     setPackingItems(items);
+
+    // ⬇️ Smooth scroll to Packing List
+    setTimeout(() => {
+      if (packingListRef.current) {
+        packingListRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
   };
 
   return (
@@ -29,17 +37,17 @@ export default function App() {
       {/* ✅ Top Image */}
       <img src={tripImg} alt="Trip" className="w-full max-w-md rounded shadow" />
 
-      {/* ✅ Form */}
+      {/* ✅ Form Section */}
       <div className="w-full max-w-md">
         <TripForm onSubmit={handleTripSubmit} />
       </div>
 
-      {/* ✅ Resort Image immediately under the form */}
+      {/* ✅ Second Image under form */}
       <img src={resortImg} alt="Resort" className="w-full max-w-md rounded shadow" />
 
-      {/* ✅ Packing List */}
+      {/* ✅ Packing List (scroll target) */}
       {packingItems && (
-        <div className="w-full max-w-md">
+        <div ref={packingListRef} className="w-full max-w-md">
           <PackingList items={packingItems} />
         </div>
       )}
