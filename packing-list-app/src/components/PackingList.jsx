@@ -8,14 +8,17 @@ export default function PackingList({ items }) {
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">Packing Checklist</h2>
-      {Object.entries(items).map(([category, list]) => (
-        <ChecklistSection
-          key={category}
-          title={category}
-          items={list}
-          toggleItem={(i) => handleToggle(category, i)}
-        />
+      {Object.entries(items).map(([category, things]) => (
+  <div key={category} className="mb-4">
+    <h3 className="text-xl font-semibold text-blue-700 mb-2">{category} 🗂️</h3>
+    <ul className="list-disc list-inside pl-4 space-y-1">
+      {things.map((item, index) => (
+        <li key={index}>{item}</li>
       ))}
-    </div>
+    </ul>
+  </div>
+  
+))}
+</div>
   );
 }

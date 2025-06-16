@@ -9,8 +9,8 @@ export default function App() {
   const [packingItems, setPackingItems] = useState(null);
 
   const handleTripSubmit = ({ tripType, duration, location }) => {
-    const base = templates[tripType];
-    const items = {};
+  const base = templates[tripType];
+  const items = {};
 
     for (let [category, things] of Object.entries(base)) {
       items[category] = [...things, ...(duration > 5 ? [`Extra ${category}`] : [])];
@@ -21,6 +21,10 @@ export default function App() {
 
   return (
     <div className="p-4 bg-gray-100 min-h-screen">
+      {/* ✅ Title */}
+      <h1 className="text-4xl font-bold text-center text-blue-800 mb-6">
+        My Packing List
+      </h1>
       {/* Images */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
         <img src={tripImg} alt="Trip" className="w-1/2 rounded" />
