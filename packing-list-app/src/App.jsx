@@ -34,4 +34,4 @@ export default function App() {
     </div>
   );
 }
-console.log('tripImg path:', tripImg);
+
