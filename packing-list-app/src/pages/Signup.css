@@ -1,0 +1,98 @@
+/* Ensure full height and no scroll overflow */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+
+.signup-page {
+  position: relative;
+  min-height: 100vh;
+  padding: 80px 16px; /* enough space below navbar */
+  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+    url("../assets/hero.jpg");
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* changed from center */
+  box-sizing: border-box;
+}
+
+
+/* Floating glow effect */
+.signup-page::after {
+  content: "";
+  position: absolute;
+  top: -60%;
+  left: -60%;
+  width: 220%;
+  height: 220%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.03), transparent 70%);
+  animation: floatGlow 16s ease-in-out infinite;
+  z-index: 0;
+}
+
+/* Subtle animated wave layer */
+.signup-page::before {
+  content: "";
+  position: absolute;
+  width: 300%;
+  height: 300%;
+  top: -100%;
+  left: -100%;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.025), transparent 80%);
+  animation: waveFlow 28s linear infinite;
+  z-index: 0;
+}
+
+/* Signup card styling */
+.signup-container {
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(14px);
+  margin: 20px 16px;
+  max-width: 360px;
+  width: 90%;
+  padding: 1.5rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  margin-top: 20px; /* small breathing space from top */
+  margin-bottom: 25px; /* reduce bottom overflow */
+
+}
+
+/* Input adjustments */
+input.form-control.custom-input {
+  padding: 4px 10px !important;
+  font-size: 0.9rem !important;
+  height: 34px !important;
+  line-height: 1.2 !important;
+  border-radius: 6px;
+}
+
+/* Animations */
+@keyframes floatGlow {
+  0% {
+    transform: rotate(0deg) translate(0, 0);
+  }
+  50% {
+    transform: rotate(180deg) translate(40px, 30px);
+  }
+  100% {
+    transform: rotate(360deg) translate(0, 0);
+  }
+}
+
+@keyframes waveFlow {
+  0% {
+    transform: rotate(0deg) translateX(0);
+  }
+  100% {
+    transform: rotate(360deg) translateX(0);
+  }
+}

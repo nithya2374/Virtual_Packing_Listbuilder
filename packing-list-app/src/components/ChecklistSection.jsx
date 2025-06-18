@@ -1,19 +1,23 @@
 export default function ChecklistSection({ title, items, toggleItem }) {
   return (
-    <div className="bg-white p-4 rounded-xl shadow mb-4">
-      <h3 className="font-semibold text-lg mb-2">{title} 🗂️</h3>
-      <ul className="space-y-2">
-        {items.map((item, i) => (
-          <li key={i} className="flex items-center">
-            <input
-              type="checkbox"
-              onChange={() => toggleItem(i)}
-              className="mr-2"
-            />
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
+    <div className="card mb-4 shadow-sm">
+      <div className="card-body">
+        <h3 className="card-title h5 mb-3">{title} 🗂️</h3>
+        <ul className="list-unstyled">
+          {items.map((item, i) => (
+            <li key={i} className="form-check mb-2">
+              <input
+                type="checkbox"
+                className="form-check-input me-2"
+                onChange={() => toggleItem(i)}
+                id={`check-${i}`}
+              />
+              <label className="form-check-label" htmlFor={`check-${i}`}>
+                {item}
+              </label>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
-  );
-}
+  )}
