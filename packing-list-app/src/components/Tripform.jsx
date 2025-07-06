@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; 
 import Navbar from "../components/Navbar";
 
 export default function TripForm() {
+  const navigate = useNavigate(); 
   const [trip, setTrip] = useState({
     type: "",
     destination: "",
-    duration: ""
+    days: ""
   });
 
   const handleChange = (e) => {
@@ -14,8 +16,22 @@ export default function TripForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    localStorage.setItem("tripData", JSON.stringify(trip));
+
+    const tripData = {
+    type: trip.type,
+    destination: trip.destination,
+    days: trip.days
+  };
+    //save current trip to local storage
+    localStorage.setItem("tripData", JSON.stringify(tripData));
+
+    // Save to tripHistory for SavedTrips
+    const history = JSON.parse(localStorage.getItem("tripHistory")) || [];
+    history.push(tripData);
+    localStorage.setItem("tripHistory", JSON.stringify(history));
+    
     alert("Trip data saved!");
+    navigate("/packing-list"); 
   };
 
   useEffect(() => {
@@ -93,7 +109,7 @@ export default function TripForm() {
               <input
                 type="number"
                 className="form-control form-control-sm"
-                name="duration"
+                name="days"
                 onChange={handleChange}
                 required
               />

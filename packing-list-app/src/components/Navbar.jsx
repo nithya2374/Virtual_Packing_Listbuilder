@@ -36,6 +36,8 @@ export default function Navbar() {
               <>
                 <Link className="nav-link text-light fw-semibold nav-hover" to="/trip"><i className="bi bi-geo-alt"></i> Trip</Link>
                 <Link className="nav-link text-light fw-semibold nav-hover" to="/packing-list"><i className="bi bi-list-check"></i> List</Link>
+                <Link className="nav-link text-light fw-semibold nav-hover" to="/saved-trips"><i className="bi bi-journal-bookmark"></i> Savedtrips</Link>
+
                 <button className="btn btn-link nav-link fw-semibold text-danger p-0" onClick={logout}>
                   <i className="bi bi-box-arrow-right"></i> Logout
                 </button>
@@ -60,6 +62,8 @@ export default function Navbar() {
               <>
                 <li><Link className="sidebar-link" to="/trip" onClick={closeSidebar}><i className="bi bi-geo-alt me-2"></i>Trip</Link></li>
                 <li><Link className="sidebar-link" to="/packing-list" onClick={closeSidebar}><i className="bi bi-list-check me-2"></i>List</Link></li>
+                <li><Link className="sidebar-link" to="/saved-trips" onClick={closeSidebar}><i className="bi bi-journal-bookmark me-2"></i>Savedtrips</Link></li>
+
                 <li>
                   <button className="btn btn-link sidebar-link text-danger p-0" onClick={() => { logout(); closeSidebar(); }}>
                     <i className="bi bi-box-arrow-right me-2"></i>Logout

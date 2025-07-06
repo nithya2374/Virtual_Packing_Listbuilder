@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom"; 
 import "./Signup.css";
 import Navbar from "../components/Navbar";
 
@@ -64,9 +65,22 @@ export default function Signup() {
                 onChange={handleChange}
               />
             </div>
+             <div className="mb-3 text-start">
+              <label className="form-label">Contact</label>
+              <input
+                type="number"
+                name="Contact"
+                className="form-control custom-input"
+                required
+                onChange={handleChange}
+              />
+            </div>
             <button type="submit" className="btn btn-outline-light w-100">
               Sign Up
             </button>
+            <p className="mt-3 text-center">
+                  Already have an account? <Link to="/Login" className="text-light">Login</Link>
+            </p>
           </form>
         </div>
       </div>

@@ -1,17 +1,22 @@
 import { useEffect, useState } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable"; // ✅ Correct import
 import templates from "../data/templates";
 
 export default function PackingList() {
   const [tripType, setTripType] = useState("");
+  const [tripData, setTripData] = useState({});
+  const [itinerary, setItinerary] = useState([]);
   const [packingData, setPackingData] = useState({});
   const [customItems, setCustomItems] = useState({});
   const [packedStatus, setPackedStatus] = useState({});
 
-  // Load from localStorage
   useEffect(() => {
     const trip = JSON.parse(localStorage.getItem("tripData"));
     if (trip?.type) {
       setTripType(trip.type);
+      setTripData(trip);
+
       const data = templates[trip.type] || {};
       setPackingData(data);
 
@@ -20,6 +25,9 @@ export default function PackingList() {
 
       const packed = JSON.parse(localStorage.getItem("packedStatus_" + trip.type)) || {};
       setPackedStatus(packed);
+
+      const savedItinerary = JSON.parse(localStorage.getItem("itinerary_" + trip.type)) || [];
+      setItinerary(savedItinerary);
     }
   }, []);
 
@@ -49,20 +57,65 @@ export default function PackingList() {
     localStorage.setItem("packedStatus_" + tripType, JSON.stringify(updated));
   };
 
-  const exportList = () => {
-    let content = `Packing List for ${tripType}\n\n`;
+  const handleItineraryChange = (index, value) => {
+    const updated = [...itinerary];
+    updated[index] = value;
+    setItinerary(updated);
+    localStorage.setItem("itinerary_" + tripType, JSON.stringify(updated));
+  };
+
+  //  FIXED PDF Export Function
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    let y = 15;
+
+    // Trip Summary
+    doc.setFontSize(14);
+    doc.text("Trip Summary", 14, y);
+    y += 8;
+    doc.setFontSize(11);
+    doc.text(`Destination: ${tripData.destination}`, 14, y);
+    y += 6;
+    doc.text(`Trip Type: ${tripData.type}`, 14, y);
+    y += 6;
+    doc.text(`Days: ${tripData.days}`, 14, y);
+    y += 10;
+
+    // Itinerary Notes
+    if (itinerary.length > 0) {
+      doc.setFontSize(13);
+      doc.text("Itinerary Notes", 14, y);
+      y += 4;
+
+      autoTable(doc, {
+        startY: y,
+        head: [["Day", "Plan"]],
+        body: itinerary.map((note, idx) => [`Day ${idx + 1}`, note || "-"]),
+      });
+
+      y = doc.lastAutoTable.finalY + 10;
+    }
+
+    // Packed Items Table
+    doc.setFontSize(13);
+    doc.text("Packed Items", 14, y);
+    y += 4;
+
     Object.entries(packingData).forEach(([category, items]) => {
-      content += `${category}:\n`;
-      items.forEach((item) => (content += `- ${item}\n`));
-      (customItems[category] || []).forEach((item) => (content += `- ${item}\n`));
-      content += `\n`;
+      const allItems = [...items, ...(customItems[category] || [])];
+      const packedItems = allItems.filter((item) => packedStatus[item]);
+
+      if (packedItems.length > 0) {
+        autoTable(doc, {
+          startY: y,
+          head: [[category]],
+          body: packedItems.map((item) => [item]),
+        });
+        y = doc.lastAutoTable.finalY + 8;
+      }
     });
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `Packing_List_${tripType}.txt`;
-    link.click();
+
+    doc.save(`Packing_List_${tripData.destination || "Trip"}.pdf`);
   };
 
   return (
@@ -73,13 +126,7 @@ export default function PackingList() {
         animation: "floatBg 10s ease-in-out infinite",
       }}
     >
-      {/* Navbar */}
-      <nav
-        className="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 shadow-sm"
-        style={{
-          backdropFilter: "blur(10px)",
-        }}
-      >
+      <nav className="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 shadow-sm">
         <div className="container">
           <a className="navbar-brand fw-bold" href="/">
             Virtual Packing List
@@ -87,7 +134,6 @@ export default function PackingList() {
         </div>
       </nav>
 
-      {/* Main Content */}
       <div className="container py-5">
         <div
           className="mx-auto text-white p-4 rounded-4 shadow"
@@ -98,10 +144,36 @@ export default function PackingList() {
             fontSize: "0.95rem",
           }}
         >
+          <div className="card bg-dark text-white mb-4">
+            <div className="card-body">
+              <h5 className="card-title">Trip Summary</h5>
+              <p><strong>Destination:</strong> {tripData.destination}</p>
+              <p><strong>Trip Type:</strong> {tripData.type}</p>
+              <p><strong>Days:</strong> {tripData.days}</p>
+            </div>
+          </div>
+
+          <div className="card bg-dark text-white mb-4">
+            <div className="card-body">
+              <h5 className="card-title">Itinerary Notes</h5>
+              {Array.from({ length: tripData.days || 0 }).map((_, index) => (
+                <div key={index} className="mb-2">
+                  <label>Day {index + 1}:</label>
+                  <input
+                    type="text"
+                    className="form-control form-control-sm mt-1"
+                    value={itinerary[index] || ""}
+                    onChange={(e) => handleItineraryChange(index, e.target.value)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="text-center mb-4">
             <h4 className="fw-bold">Packing List for {tripType}</h4>
-            <button className="btn btn-success btn-sm mt-2" onClick={exportList}>
-              Export List
+            <button className="btn btn-danger btn-sm mt-2" onClick={exportToPDF}>
+              Export to PDF
             </button>
           </div>
 
@@ -160,7 +232,6 @@ export default function PackingList() {
         </div>
       </div>
 
-      {/* Floating animation keyframes */}
       <style>
         {`
           @keyframes floatBg {

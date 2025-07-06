@@ -1,15 +1,11 @@
-
-
 {
   "name": "packing-list-app",
   "private": true,
   "version": "0.0.0",
-  "homepage": "https://nithya2374.github.io/Virtual_Packing_Listbuilder",
-
+  "homepage": "https://nithya2374.github.io/virtual_packing_listbuilder/packing-list-app",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
@@ -18,7 +14,11 @@
     "@heroicons/react": "^2.2.0",
     "@tailwindcss/vite": "^4.1.10",
     "bootstrap": "^5.3.6",
+    "canvg": "^4.0.3",
     "esbuild": "^0.25.5",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2"
