@@ -17,6 +17,10 @@ connectDB();
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/trips", require("./routes/tripRoutes"));
 
+app.get("/", (req, res) => {
+  res.send("Backend is working!");
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
   console.log(`Server running on port at http://localhost:${PORT}`)

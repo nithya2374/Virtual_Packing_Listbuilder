@@ -1,4 +1,5 @@
 const templates = {
+  
   Vacation: {
     Clothes: ["T-Shirts 👕", "Shorts 🩳", "Sandals 🩴"],
     Toiletries: ["Toothbrush 🪥", "Shampoo 🧴"],
