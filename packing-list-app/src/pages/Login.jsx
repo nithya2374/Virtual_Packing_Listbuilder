@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom"; 
 import "./Login.css";
 import Navbar from "../components/Navbar";
 
@@ -46,6 +47,10 @@ export default function Login() {
             <button type="submit" className="btn btn-outline-light w-100">
               Login
             </button>
+
+            <p className="mt-3 text-center">
+                  Dont have an account? <Link to="/Signup" className="text-light">Signup</Link>
+            </p>
           </form>
         </div>
       </div>

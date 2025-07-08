@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import Navbar from "../components/Navbar";
 
 export default function TripForm() {
+  const navigate = useNavigate();
   const [trip, setTrip] = useState({
     type: "",
     destination: "",
@@ -12,10 +15,35 @@ export default function TripForm() {
     setTrip({ ...trip, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    localStorage.setItem("tripData", JSON.stringify(trip));
-    alert("Trip data saved!");
+
+    const token = localStorage.getItem("token"); // Assuming login token stored in localStorage
+    if (!token) {
+      alert("Please login to save your trip!");
+      return;
+    }
+
+    try {
+      const response = await axios.post("http://localhost:5000/api/trips", {
+        type: trip.type,
+        destination: trip.destination,
+        days: parseInt(trip.duration)
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      const savedTrip = response.data;
+      localStorage.setItem("currentTripId", savedTrip._id); // used in PackingList later
+      alert("Trip saved to backend!");
+      navigate("/packing-list");
+
+    } catch (error) {
+      console.error("❌ Error saving trip:", error);
+      alert("Failed to save trip");
+    }
   };
 
   useEffect(() => {
@@ -43,7 +71,7 @@ export default function TripForm() {
           minHeight: "100vh",
           paddingTop: "90px",
           paddingBottom: "80px",
-          backgroundColor: "#1F2D3D", // dark bluish tone matching navbar
+          backgroundColor: "#1F2D3D",
         }}
       >
         <div

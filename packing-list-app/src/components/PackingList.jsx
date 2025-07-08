@@ -1,27 +1,65 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import templates from "../data/templates";
+import axios from "axios";
 
 export default function PackingList() {
   const [tripType, setTripType] = useState("");
   const [packingData, setPackingData] = useState({});
   const [customItems, setCustomItems] = useState({});
   const [packedStatus, setPackedStatus] = useState({});
+  const [tripId, setTripId] = useState(null);
+  const navigate = useNavigate();
 
-  // Load from localStorage
   useEffect(() => {
-    const trip = JSON.parse(localStorage.getItem("tripData"));
-    if (trip?.type) {
-      setTripType(trip.type);
-      const data = templates[trip.type] || {};
-      setPackingData(data);
+    const fetchTrip = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please login again");
+        navigate("/login");
+        return;
+      }
 
-      const custom = JSON.parse(localStorage.getItem("customItems_" + trip.type)) || {};
-      setCustomItems(custom);
+      try {
+        const res = await axios.get("http://localhost:5000/api/trips", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      const packed = JSON.parse(localStorage.getItem("packedStatus_" + trip.type)) || {};
-      setPackedStatus(packed);
+        const trips = res.data;
+        if (trips.length === 0) return;
+
+        const latest = trips[trips.length - 1];
+        setTripType(latest.type);
+        setTripId(latest._id);
+        setCustomItems(latest.customItems || {});
+        setPackedStatus(latest.packedItems || {});
+
+        const template = templates[latest.type] || {};
+        setPackingData(template);
+      } catch (err) {
+        console.error("Failed to load trip:", err);
+        alert("Please login again");
+        navigate("/login");
+      }
+    };
+
+    fetchTrip();
+  }, [navigate]);
+
+  const updateTrip = async (updates) => {
+    const token = localStorage.getItem("token");
+    try {
+      await axios.put(`http://localhost:5000/api/trips/${tripId}`, updates, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (err) {
+      console.error("Failed to update trip:", err);
     }
-  }, []);
+  };
 
   const handleAddItem = (category, item) => {
     if (!item.trim()) return;
@@ -30,14 +68,14 @@ export default function PackingList() {
       [category]: [...(customItems[category] || []), item],
     };
     setCustomItems(updated);
-    localStorage.setItem("customItems_" + tripType, JSON.stringify(updated));
+    updateTrip({ customItems: updated });
   };
 
   const handleRemoveItem = (category, index) => {
     const updated = { ...customItems };
     updated[category].splice(index, 1);
     setCustomItems(updated);
-    localStorage.setItem("customItems_" + tripType, JSON.stringify(updated));
+    updateTrip({ customItems: updated });
   };
 
   const handleCheckboxChange = (item) => {
@@ -46,7 +84,7 @@ export default function PackingList() {
       [item]: !packedStatus[item],
     };
     setPackedStatus(updated);
-    localStorage.setItem("packedStatus_" + tripType, JSON.stringify(updated));
+    updateTrip({ packedItems: updated });
   };
 
   const exportList = () => {
@@ -57,6 +95,7 @@ export default function PackingList() {
       (customItems[category] || []).forEach((item) => (content += `- ${item}\n`));
       content += `\n`;
     });
+
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -66,6 +105,7 @@ export default function PackingList() {
   };
 
   return (
+    <>
     <div
       style={{
         minHeight: "100vh",
@@ -73,13 +113,7 @@ export default function PackingList() {
         animation: "floatBg 10s ease-in-out infinite",
       }}
     >
-      {/* Navbar */}
-      <nav
-        className="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 shadow-sm"
-        style={{
-          backdropFilter: "blur(10px)",
-        }}
-      >
+      <nav className="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 shadow-sm">
         <div className="container">
           <a className="navbar-brand fw-bold" href="/">
             Virtual Packing List
@@ -87,7 +121,6 @@ export default function PackingList() {
         </div>
       </nav>
 
-      {/* Main Content */}
       <div className="container py-5">
         <div
           className="mx-auto text-white p-4 rounded-4 shadow"
@@ -126,7 +159,9 @@ export default function PackingList() {
                     {customItems[category]?.includes(item) && (
                       <button
                         className="btn btn-sm btn-outline-danger"
-                        onClick={() => handleRemoveItem(category, idx - items.length)}
+                        onClick={() =>
+                          handleRemoveItem(category, idx - items.length)
+                        }
                       >
                         🗑️
                       </button>
@@ -160,7 +195,6 @@ export default function PackingList() {
         </div>
       </div>
 
-      {/* Floating animation keyframes */}
       <style>
         {`
           @keyframes floatBg {
@@ -171,5 +205,6 @@ export default function PackingList() {
         `}
       </style>
     </div>
+    </>
   );
 }
