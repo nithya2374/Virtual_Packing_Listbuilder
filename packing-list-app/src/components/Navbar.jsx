@@ -1,13 +1,21 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const closeSidebar = () => setIsSidebarOpen(false);
+  const logoutHandler = async () => {
+      await axios.post("/api/auth/logout", { withCredentials: true });
+      logout(); // Clears context
+      navigate('/login');
+   };
 
   return (
     <>
@@ -38,7 +46,7 @@ export default function Navbar() {
                 <Link className="nav-link text-light fw-semibold nav-hover" to="/packing-list"><i className="bi bi-list-check"></i> List</Link>
                 <Link className="nav-link text-light fw-semibold nav-hover" to="/saved-trips"><i className="bi bi-journal-bookmark"></i> Savedtrips</Link>
 
-                <button className="btn btn-link nav-link fw-semibold text-danger p-0" onClick={logout}>
+                <button className="btn btn-link nav-link fw-semibold text-danger p-0" onClick={logoutHandler}>
                   <i className="bi bi-box-arrow-right"></i> Logout
                 </button>
               </>
@@ -65,7 +73,7 @@ export default function Navbar() {
                 <li><Link className="sidebar-link" to="/saved-trips" onClick={closeSidebar}><i className="bi bi-journal-bookmark me-2"></i>Savedtrips</Link></li>
 
                 <li>
-                  <button className="btn btn-link sidebar-link text-danger p-0" onClick={() => { logout(); closeSidebar(); }}>
+                  <button className="btn btn-link sidebar-link text-danger p-0" onClick={() => { logoutHandler(); closeSidebar(); }}>
                     <i className="bi bi-box-arrow-right me-2"></i>Logout
                   </button>
                 </li>

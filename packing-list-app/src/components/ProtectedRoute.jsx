@@ -1,13 +1,34 @@
-// src/components/ProtectedRoute.jsx
 import { useAuth } from "../context/AuthContext";
 import { Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 export default function ProtectedRoute({ children }) {
-  const { user } = useAuth();
+  const { user, login } = useAuth();             // Get auth info from context
+  const [loading, setLoading] = useState(true);  // Track loading status
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/auth/me", {
+          withCredentials: true,
+        });
+        if (response.data.user) {
+          login(response.data.user);
+        }
+      } catch (err) {
+        console.warn("Not authenticated:", err.response?.data?.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  return children;
+    checkAuth();
+  }, [login]);
+
+  if (loading) return <div>Loading...</div>; // Wait until we check login
+
+  if (!user) return <Navigate to="/login" replace />; 
+
+  return children; // Loggedin & allow access
 }

@@ -12,11 +12,14 @@ export default function SavedTrips() {
       try {
         const res = await fetch("http://localhost:5000/api/trips", {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          credentials: "include",
         });
+
+        if (res.status === 401) {
+          alert("Session expired. Please login again.");
+          navigate("/login");
+          return;
+        }
 
         if (res.ok) {
           const data = await res.json();
@@ -24,6 +27,7 @@ export default function SavedTrips() {
         } else {
           alert("Failed to fetch trips.");
         }
+
       } catch (err) {
         console.error(err);
         alert("Error connecting to backend.");
@@ -45,7 +49,7 @@ export default function SavedTrips() {
     y += 6;
     doc.text(`Trip Type: ${trip.type}`, 14, y);
     y += 6;
-    doc.text(`Days: ${trip.days}`, 14, y); // ✅ fixed this field
+    doc.text(`Days: ${trip.days}`, 14, y); 
     y += 10;
 
     // Itinerary notes

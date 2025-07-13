@@ -1,23 +1,33 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null); // Stores current user object
 
+  // Check if user is logged in on page load
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem('user'));
-    if (stored) setUser(stored);
+    axios.get("http://localhost:5000/api/auth/me",  { 
+         withCredentials :true
+      ,})
+
+      .then(res => {
+        setUser(res.data.user); // Set user from backend if token is valid
+      })
+
+      .catch(() => {
+        setUser(null); // Not logged in or token expired
+      });
+   
   }, []);
 
   const login = (userData) => {
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
+    setUser(userData); // Set user after login
   };
 
   const logout = () => {
-    localStorage.removeItem('user');
-    setUser(null);
+    setUser(null); // Clear user
   };
 
   return (

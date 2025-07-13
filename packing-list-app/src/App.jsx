@@ -9,6 +9,7 @@ import Signup from './pages/Signup';
 import ProtectedRoute from './components/ProtectedRoute';
 import templates from './data/templates';
 
+
 function App() {
   return (
     <>
@@ -31,9 +32,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/saved-trips"
+          element={
+            <ProtectedRoute>
+               <SavedTrips/>
+            </ProtectedRoute>
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/saved-trips" element={<SavedTrips />} /> 
       </Routes>
     </>
   );

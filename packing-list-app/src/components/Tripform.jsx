@@ -2,14 +2,19 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../components/Navbar";
+import { useTrip } from "../context/TripContext"; 
 
 export default function TripForm() {
   const navigate = useNavigate();
+  const { setTripId } = useTrip(); 
   const [trip, setTrip] = useState({
     type: "",
     destination: "",
     duration: ""
   });
+
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleChange = (e) => {
     setTrip({ ...trip, [e.target.name]: e.target.value });
@@ -17,32 +22,35 @@ export default function TripForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
 
-    const token = localStorage.getItem("token"); // Assuming login token stored in localStorage
-    if (!token) {
-      alert("Please login to save your trip!");
+    const { type, destination, duration } = trip;
+
+    if (!type|| !destination || !duration) {
+      setError("All fields are required");
       return;
     }
 
     try {
       const response = await axios.post("http://localhost:5000/api/trips", {
-        type: trip.type,
-        destination: trip.destination,
-        days: parseInt(trip.duration)
+        type,
+        destination,
+        duration:parseInt(duration)
       }, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        withCredentials: true
+        
       });
 
       const savedTrip = response.data;
-      localStorage.setItem("currentTripId", savedTrip._id); // used in PackingList later
-      alert("Trip saved to backend!");
-      navigate("/packing-list");
+      setTripId(savedTrip._id); // store trip ID in context
+      setSuccess("Trip saved successfully!");
+      navigate("/packing-list"); 
 
-    } catch (error) {
-      console.error("❌ Error saving trip:", error);
-      alert("Failed to save trip");
+    } 
+    catch (error) {
+      console.error("Error saving trip:", error);
+      setError("Failed to save trip.Please try again");
     }
   };
 
@@ -64,7 +72,7 @@ export default function TripForm() {
 
   return (
     <>
-      <Navbar />
+      <Navbar/>
       <div
         className="trip-page d-flex justify-content-center align-items-start text-white"
         style={{
@@ -126,6 +134,10 @@ export default function TripForm() {
                 required
               />
             </div>
+
+            {error && <p className="text-danger text-center">{error}</p>}
+            {success && <p className="text-success text-center">{success}</p>}
+
             <button
               type="submit"
               className="btn btn-outline-light btn-sm w-100 mt-2"
