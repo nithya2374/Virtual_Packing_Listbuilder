@@ -30,9 +30,12 @@ export default function Login() {
     }
     
     try {
-    const res = await axios.post("http://localhost:5000/api/auth/login", { email, password },
-      { withCredentials: true,} 
-    );
+    const res = await axios.post("http://localhost:5000/api/auth/login", 
+  { email, password }, 
+  { withCredentials: true }
+);
+
+
        localStorage.setItem("token", res.data.token);       
        localStorage.setItem("user", JSON.stringify(res.data.user)); 
 
@@ -41,9 +44,15 @@ export default function Login() {
      } 
 
    catch (err) {
-       console.error("Login failed:", err);
-       setError(err.response?.data?.message || "Login failed. Please try again.");
+  console.error("Login failed:", err);
+  
+  if (err.response && err.response.data && err.response.data.message) {
+    setError(err.response.data.message);
+  } else {
+    setError("Something went wrong. Please try again later.");
   }
+}
+
     };  
 
   return (
