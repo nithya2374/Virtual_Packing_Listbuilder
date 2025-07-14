@@ -37,7 +37,7 @@ export const updateTrip = async (req, res) => {
     if (!trip) return res.status(404).json({ message: "Trip not found" });
 
     // Check if the logged-in user is the owner
-    if (trip.user.toString() !== req.user.id) {
+    if (trip.user.toString() !== req.user.userId) {
       return res.status(403).json({ message: "Not authorized to update this trip" });
     }
 
@@ -59,7 +59,7 @@ export const deleteTrip = async (req, res) => {
     const trip = await Trip.findById(req.params.id);
     if (!trip) return res.status(404).json({ message: "Trip not found" });
 
-    if (trip.user.toString() !== req.user.id) {
+    if (trip.user.toString() !== req.user.userId) {
       return res.status(403).json({ message: "Not authorized to delete this trip" });
     }
     await trip.deleteOne();

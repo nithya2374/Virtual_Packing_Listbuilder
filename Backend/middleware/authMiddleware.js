@@ -1,26 +1,18 @@
 import jwt from "jsonwebtoken";
 
 const authMiddleware = (req, res, next) => {
-  // 1. Get token from HTTP-only cookie
-  const token = req.cookies?.token;
-  console.log("Token received in middleware:", token);
+  const token = req.cookies.token; // 🔥 Get from cookies
 
-  // 2. Check if token is missing
   if (!token) {
-    return res.status(401).json({ message: "No token provided" });
+    return res.status(401).json({ success: false, message: "No token provided" });
   }
 
   try {
-    // 3. Verify the token using secret
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // 4. Attach user info to the request
-    req.user = { userId: decoded.userId, email: decoded.email };
-
-    // 5. Proceed to next middleware/route
+    req.user = decoded;
     next();
   } catch (err) {
-    return res.status(401).json({ message: "Invalid token" });
+    return res.status(403).json({ success: false, message: "Invalid token" });
   }
 };
 
