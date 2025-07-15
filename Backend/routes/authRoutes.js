@@ -77,7 +77,7 @@ router.post('/login', [
        return res.status(401).json({ success:false,  message: "Invalid Credentials" });
     }
 
-    const token = jwt.sign({ userId: user._id , email:user.email}, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ userId: user._id , email:user.email}, process.env.JWT_SECRET, { expiresIn: "1d" });
 
     res.cookie("token", token, {
        httpOnly: true,

@@ -2,210 +2,235 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import templates from "../data/templates";
 import ChecklistSection from "../components/ChecklistSection";
+import Navbar from "../components/Navbar";
 import axios from "axios";
 import { jsPDF } from "jspdf";
 
 export default function PackingList() {
   const [tripType, setTripType] = useState("");
   const [packingData, setPackingData] = useState({});
+  const [trip, setTrip] = useState({});
   const [customItems, setCustomItems] = useState({});
   const [packedStatus, setPackedStatus] = useState({});
-  const [tripId, setTripId] = useState(null);
-  const [trip, setTrip] = useState({});
+  const [notes, setNotes] = useState([]);
+  const [noteSaved, setNoteSaved] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTrip = async () => {
-      
       try {
-        const res = await axios.get("http://localhost:5000/api/trips", {
-          withCredentials: true,
-        });
+        const { data } = await axios.get("/api/trips/latest", { withCredentials: true });
+        const latest = data;
 
-        if (res.status !== 200 || !res.data.length) {
-           throw new Error("No trips found");
-         }
-
-        const latest = trips[0];
-        setTripType(latest.type);
-        setTripId(latest._id);
         setTrip(latest);
+        setTripType(latest.type);
         setCustomItems(latest.customItems || {});
         setPackedStatus(latest.packedItems || {});
+        setNotes(latest.notes?.length ? latest.notes : Array(latest.days).fill(""));
 
-        const template = templates[latest.type] || {};
-        setPackingData(template);
+        const defaultData = templates[latest.type];
+        setPackingData(defaultData);
       } 
       catch (err) {
-        console.error("Failed to load trip:", err);
-        alert("Please login again");
-        navigate("/login");
+        console.error("Failed to fetch trip", err);
+        navigate("/trip");
       }
     };
-
     fetchTrip();
-  }, [navigate]);
 
-  const updateTrip = async (updates) => {
-    try {
-      await axios.put(`http://localhost:5000/api/trips/${tripId}`, updates, {
-        withCredentials:true,
-      });
-    } catch (err) {
-      console.error("Failed to update trip:", err);
-    }
-  };
+    // Animate float effect
+    const keyframes = `
+      @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-8px); }
+        100% { transform: translateY(0px); }
+      }
+    `;
+    const style = document.createElement("style");
+    style.innerHTML = keyframes;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
 
-  const handleAddItem = (category, item) => {
-    if (!item.trim()) return;
-    const updated = {
-      ...customItems,
-      [category]: [...(customItems[category] || []), item],
-    };
-    setCustomItems(updated);
-    updateTrip({ customItems: updated });
-  };
-
-  const handleRemoveItem = (category, index) => {
-    const updated = { ...customItems };
-    updated[category].splice(index, 1);
-    setCustomItems(updated);
-    updateTrip({ customItems: updated });
-  };
-
-  const handleCheckboxChange = (item) => {
-    const updated = {
-      ...packedStatus,
-      [item]: !packedStatus[item],
-    };
+  const handleCheckboxChange = (category, item) => {
+    const updated = { ...packedStatus };
+    updated[category] = { ...(updated[category] || {}), [item]: !updated[category]?.[item] };
     setPackedStatus(updated);
-    updateTrip({ packedItems: updated });
+  };
+
+  const handleNoteChange = (value, index) => {
+    const updatedNotes = [...notes];
+    updatedNotes[index] = value;
+    setNotes(updatedNotes);
+  };
+
+
+  const saveNotes = async () => {
+  try {
+    await axios.put(`/api/trips/${trip._id}`, {
+      notes,
+      customItems,
+      packedItems: packedStatus,
+    }, { withCredentials: true });
+    setNoteSaved(true);
+    setTimeout(() => setNoteSaved(false), 2000);
+  } 
+  catch (err) {
+    console.error("Failed to save notes", err);
+  }
   };
 
   const exportList = () => {
-    if (!tripType || !packingData || !tripId) {
-       alert("Trip data not available");
-       return;
-    }
+  const doc = new jsPDF();
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text(`Packing List for ${tripType}`, 10, 10);
 
-    const doc = new jsPDF();
-    const currentDate = new Date().toLocaleDateString();
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Type: ${trip.type}`, 10, 20);
+  doc.text(`Destination: ${trip.destination}`, 10, 27);
+  doc.text(`Total Days: ${trip.days}`, 10, 34);
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.text("Packing List", 20, 20);
+  let y = 44;
 
+  doc.setFont("helvetica", "bold");
+  doc.text("Itinerary Notes:", 10, y);
+  y += 7;
+
+  notes.forEach((note, index) => {
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    doc.text(`Trip Type: ${tripType}`, 20, 30);
-    doc.text(`Destination: ${trip.destination || "Not specified"}`, 20, 36);
-    doc.text(`Duration: ${trip.days || "N/A"} day(s)`, 20, 42);
-    doc.text(`Created On: ${currentDate}`, 20, 48);
+    doc.text([`Day ${index + 1}: ${note || "No notes"}`], 10, y);
+    y += 6;
+  });
 
-    doc.setDrawColor(0);
-    doc.line(20, 50, 190, 50);
+  y += 5;
+  doc.setFont("helvetica", "bold");
+  doc.text("Packed Items Only:", 10, y);
+  y += 7;
 
-    let y = 58;
+  const fullPacking = {
+    ...packingData,
+    ...Object.fromEntries(
+      Object.entries(customItems).map(([cat, items]) => [
+        cat,
+        [...(packingData[cat] || []), ...items],
+      ])
+    ),
+  };
 
-    Object.entries(packingData).forEach(([category, items]) => {
-       doc.setFont("helvetica", "bold");
-       doc.setFontSize(14);
-       doc.setTextColor(33, 33, 33);
-       doc.text(category, 20, y);
-       y += 6;
-
-      doc.setDrawColor(180);
-      doc.line(20, y, 190, y);
-      y += 4;
+  Object.entries(fullPacking).forEach(([category, items]) => {
+    const packedItems = items.filter(item => packedStatus[category]?.[item]);
+    if (packedItems.length > 0) {
+      doc.setFont("helvetica", "bold");
+      doc.text(`${category}:`, 10, y);
+      y += 6;
 
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(12);
-      doc.setTextColor(60);
-
-      items.forEach((item) => {
-        doc.text(`- ${item}`, 26, y);
+      packedItems.forEach(item => {
+        doc.text([`- ${item}`], 15, y);  
         y += 6;
+        if (y > 280) {
+          doc.addPage();
+          y = 10;
+        }
       });
-
-     (customItems[category] || []).forEach((item) => {
-       doc.text(`- ${item} (custom)`, 26, y);
-       y += 6;
-     });
- 
-     y += 6;
-     if (y > 270) {
-      doc.addPage();
-      y = 20;
     }
   });
 
-  doc.setFontSize(10);
-  doc.setTextColor(150);
-  doc.text(`Generated by Virtual Packing List App`, 20, doc.internal.pageSize.height - 10);
-
-  doc.save(`Packing_List_${tripType.replace(/\s+/g, "_")}.pdf`);
+  doc.save("PackedItems.pdf");
 };
 
   return (
     <>
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(to right, #181818, #222831)",
-        animation: "floatBg 10s ease-in-out infinite",
-      }}
-    >
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 shadow-sm">
-        <div className="container">
-          <a className="navbar-brand fw-bold" href="/">
-            Virtual Packing List
-          </a>
-        </div>
-      </nav>
-
-      <div className="container py-5">
+      <Navbar />
+      <div
+        className="packing-page d-flex justify-content-center align-items-start text-white"
+        style={{
+          minHeight: "100vh",
+          paddingTop: "90px",
+          paddingBottom: "80px",
+          backgroundColor: "#1F2D3D",
+        }}
+      >
         <div
-          className="mx-auto text-white p-4 rounded-4 shadow"
+          className="packing-container"
           style={{
-            maxWidth: "800px",
-            background: "rgba(0, 0, 0, 0.5)",
+            animation: "float 4s ease-in-out infinite",
             backdropFilter: "blur(12px)",
-            fontSize: "0.95rem",
+            backgroundColor: "rgba(255, 255, 255, 0.05)",
+            border: "1px solid rgba(255, 255, 255, 0.15)",
+            borderRadius: "12px",
+            maxWidth: "800px",
+            width: "95%",
+            padding: "24px",
+            fontSize: "0.9rem",
+            boxShadow: "0 0 8px rgba(0, 0, 0, 0.2)",
           }}
         >
           <div className="text-center mb-4">
             <h4 className="fw-bold">Packing List for {tripType}</h4>
             <button className="btn btn-success btn-sm mt-2" onClick={exportList}>
-              Export List
+              Export List as PDF
             </button>
           </div>
 
-          {Object.entries(packingData).map(([category, items]) => (
-              <ChecklistSection
-                key={category}
-                title={category}
-                items={[...items, ...(customItems[category] || [])]}
-                packedStatus={packedStatus}
-                toggleItem={handleCheckboxChange}
-                removeItem={(index) => handleRemoveItem(category, index)}
-                templates={items}
-                addItem={handleAddItem}
-              />     
-          ))}
+          <div className="bg-light text-dark p-3 rounded-3 mb-4">
+            <h5 className="fw-bold">Trip Summary</h5>
+            <p><strong>Type:</strong> {trip.type}</p>
+            <p><strong>Destination:</strong> {trip.destination}</p>
+            <p><strong>Total Days:</strong> {trip.days}</p>
+          </div>
+
+          <div className="bg-dark bg-opacity-25 p-3 rounded-3 mb-4 text-white">
+            <h6 className="fw-bold">Itinerary Notes</h6>
+            {notes.map((note, index) => (
+              <div key={index} className="mb-3">
+                <label className="form-label">Day {index + 1}</label>
+                <textarea
+                  className="form-control"
+                  rows="2"
+                  value={note}
+                  onChange={(e) => handleNoteChange(e.target.value, index)}
+                  placeholder={`Enter plan for Day ${index + 1}`}
+                />
+              </div>
+            ))}
+            <button className="btn btn-primary btn-sm mt-2" onClick={saveNotes}>
+              Save Notes
+            </button>
+            {noteSaved && <p className="text-success small mt-2">Notes saved</p>}
+          </div>
+
+          {packingData && Object.entries({
+              ...packingData,
+              ...Object.fromEntries(
+              Object.entries(customItems).map(([cat, items]) => [cat, [...(packingData[cat] || []), ...items], ]))
+             }).map(([category, items]) => (
+  <          ChecklistSection
+             key={category}
+             title={category}
+             items={items}
+             packedStatus={packedStatus[category] || {}}
+             templates={packingData[category] || []}
+             toggleItem={(item) => handleCheckboxChange(category, item)}
+             addItem={(cat, item) => {
+                  const updated = { ...customItems };
+                  updated[cat] = [...(updated[cat] || []), item];
+                  setCustomItems(updated);
+            }}
+            removeItem={(index) => {
+                  const updated = { ...customItems };
+                  updated[category] = [...(updated[category] || [])];
+                  updated[category].splice(index, 1);
+                 setCustomItems(updated);
+            }}
+         />
+       ))}
+
         </div>
       </div>
-
-      <style>
-        {`
-          @keyframes floatBg {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-          }
-        `}
-      </style>
-
-    </div>
     </>
   );
 }

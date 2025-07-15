@@ -1,5 +1,5 @@
 import express from "express";
-import { createTrip, getTrips, updateTrip, deleteTrip } from "../controllers/tripController.js";
+import { createTrip, getlatestTrips, getallTrips,updateTrip, deleteTrip } from "../controllers/tripController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 import { body, validationResult } from "express-validator";
 
@@ -9,7 +9,7 @@ router.post("/", authMiddleware, [
 
     body("type").notEmpty().withMessage("Triptype is required"),
     body("destination").notEmpty().withMessage("Destination is required"),
-    body("duration").isInt({min:1}).withMessage("Duration must be no of days"),
+    body("days").isInt({min:1}).withMessage("Days must be no of days"),
 
   ],(req, res) => {
 
@@ -21,7 +21,8 @@ router.post("/", authMiddleware, [
 
   });
 
-router.get("/", authMiddleware, getTrips);
+router.get("/fetchall", authMiddleware, getallTrips);
+router.get("/latest", authMiddleware, getlatestTrips);
 router.put("/:id", authMiddleware, updateTrip);
 router.delete("/:id",authMiddleware, deleteTrip);
 

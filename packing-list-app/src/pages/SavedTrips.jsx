@@ -10,7 +10,7 @@ export default function SavedTrips() {
   useEffect(() => {
     const fetchTrips = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/trips", {
+        const res = await fetch("http://localhost:5000/api/trips/fetchall", {
           method: "GET",
           credentials: "include",
         });
@@ -23,7 +23,7 @@ export default function SavedTrips() {
 
         if (res.ok) {
           const data = await res.json();
-          setTrips(data.reverse());
+          setTrips(data);
         } else {
           alert("Failed to fetch trips.");
         }
@@ -44,15 +44,17 @@ export default function SavedTrips() {
     doc.setFontSize(14);
     doc.text("Trip Summary", 14, y);
     y += 8;
+
     doc.setFontSize(11);
     doc.text(`Destination: ${trip.destination}`, 14, y);
     y += 6;
     doc.text(`Trip Type: ${trip.type}`, 14, y);
     y += 6;
     doc.text(`Days: ${trip.days}`, 14, y); 
+    y += 6;
+    doc.text(`Date: ${new Date(trip.createdAt).toLocaleDateString()}`, 14, y);
     y += 10;
 
-    // Itinerary notes
     if (trip.notes?.length > 0) {
       doc.setFontSize(13);
       doc.text("Itinerary Notes", 14, y);
@@ -67,26 +69,37 @@ export default function SavedTrips() {
       y = doc.lastAutoTable.finalY + 10;
     }
 
-    // Packed Items
     const packedItems = trip.packedItems || {};
     const customItems = trip.customItems || {};
+
+    const combined = {};
+
+    for (let cat in packedItems) {
+      const items = packedItems[cat];
+      if (Array.isArray(items)) {
+        combined[cat] = items;
+      } else {
+        combined[cat] = Object.entries(items)
+          .filter(([_, isPacked]) => isPacked)
+          .map(([item]) => item);
+      }
+    }
+
+    for (let cat in customItems) {
+      if (!combined[cat]) combined[cat] = [];
+      combined[cat].push(...customItems[cat]);
+    }
 
     doc.setFontSize(13);
     doc.text("Packed Items", 14, y);
     y += 4;
 
-    // Combine packedItems and customItems into one table
-    const allCategories = new Set([
-      ...Object.keys(packedItems),
-      ...Object.keys(customItems),
-    ]);
-
-    for (let category of allCategories) {
-      const items = [...(packedItems[category] || []), ...(customItems[category] || [])];
+    for (let cat of Object.keys(combined)) {
+      const items = combined[cat];
       if (items.length > 0) {
         autoTable(doc, {
           startY: y,
-          head: [[category]],
+          head: [[cat]],
           body: items.map((item) => [item]),
         });
         y = doc.lastAutoTable.finalY + 8;
@@ -122,19 +135,22 @@ export default function SavedTrips() {
           {trips.length === 0 ? (
             <p className="text-center">No trips saved yet.</p>
           ) : (
-            trips.map((trip, index) => (
-              <div key={trip._id || index} className="card bg-dark bg-opacity-50 text-white mb-3 shadow-sm">
-                <div className="card-body">
-                  <h5 className="card-title fw-semibold">Trip {trips.length - index}</h5>
-                  <p className="mb-1"><strong>Destination:</strong> {trip.destination}</p>
-                  <p className="mb-1"><strong>Type:</strong> {trip.type}</p>
-                  <p className="mb-0"><strong>Days:</strong> {trip.days}</p>
-                  <button className="btn btn-outline-danger btn-sm mt-2" onClick={() => exportToPDF(trip)}>
-                    Download PDF
-                  </button>
+            [...trips]
+              .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+              .map((trip, index) => (
+                <div key={trip._id || index} className="card bg-dark bg-opacity-50 text-white mb-3 shadow-sm">
+                  <div className="card-body">
+                    <h5 className="card-title fw-semibold">Trip {trips.length - index}</h5>
+                    <p className="mb-1"><strong>Destination:</strong> {trip.destination}</p>
+                    <p className="mb-1"><strong>Type:</strong> {trip.type}</p>
+                    <p className="mb-1"><strong>Days:</strong> {trip.days}</p>
+                    <p className="mb-1"><strong>Date:</strong> {new Date(trip.createdAt).toLocaleDateString()}</p>
+                    <button className="btn btn-outline-danger btn-sm mt-2" onClick={() => exportToPDF(trip)}>
+                      Download PDF
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))
+              ))
           )}
 
           <div className="text-center mt-4">

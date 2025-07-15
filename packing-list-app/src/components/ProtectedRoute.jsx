@@ -16,9 +16,11 @@ export default function ProtectedRoute({ children }) {
         if (response.data.user) {
           login(response.data.user);
         }
-      } catch (err) {
+      } 
+      catch (err) {
         console.warn("Not authenticated:", err.response?.data?.message);
-      } finally {
+      } 
+      finally {
         setLoading(false);
       }
     };

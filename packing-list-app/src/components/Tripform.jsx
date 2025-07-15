@@ -10,7 +10,7 @@ export default function TripForm() {
   const [trip, setTrip] = useState({
     type: "",
     destination: "",
-    duration: ""
+    days: ""
   });
 
   const [error, setError] = useState("");
@@ -25,9 +25,9 @@ export default function TripForm() {
     setError("");
     setSuccess("");
 
-    const { type, destination, duration } = trip;
+    const { type, destination, days} = trip;
 
-    if (!type|| !destination || !duration) {
+    if (!type|| !destination || !days) {
       setError("All fields are required");
       return;
     }
@@ -36,9 +36,10 @@ export default function TripForm() {
       const response = await axios.post("http://localhost:5000/api/trips", {
         type,
         destination,
-        duration:parseInt(duration)
+        days:parseInt(days),
       }, {
-        withCredentials: true
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" }
         
       });
 
@@ -49,9 +50,27 @@ export default function TripForm() {
 
     } 
     catch (error) {
-      console.error("Error saving trip:", error);
-      setError("Failed to save trip.Please try again");
-    }
+      
+      console.error("Trip creation failed:", error);
+
+      if (error.response) {
+          console.log("Backend responded with:", error.response.data);
+          console.log("Status code:", error.response.status);
+          console.log("full error messaage: ", error.response.data?.message);
+
+       // Show more specific error message from backend if available
+      const backendMessage = error.response.data?.message || "An error occurred";
+      setError(`Error ${error.response.status}: ${backendMessage}`);
+  } 
+  else if (error.request) {
+      console.log("Request was made but no response received:", error.request);
+       setError("No response received from server");
+  } else {
+      console.log("Error setting up request:", error.message);
+      setError("Error in request setup: " + error.message);
+  }
+}
+  
   };
 
   useEffect(() => {
@@ -129,7 +148,7 @@ export default function TripForm() {
               <input
                 type="number"
                 className="form-control form-control-sm"
-                name="duration"
+                name="days"
                 onChange={handleChange}
                 required
               />
