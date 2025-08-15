@@ -2,7 +2,7 @@
   "name": "packing-list-app",
   "private": true,
   "version": "0.0.0",
-  "homepage": "https://nithya2374.github.io/virtual_packing_listbuilder/packing-list-app",
+
   "scripts": {
     "dev": "vite",
     "build": "vite build",
