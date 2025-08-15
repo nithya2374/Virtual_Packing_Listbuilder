@@ -2,13 +2,14 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext();
+const API_URL = import.meta.env.VITE_API_URL;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null); // Stores current user object
 
   // Check if user is logged in on page load
   useEffect(() => {
-    axios.get("http://localhost:5000/api/auth/me",  { 
+    axios.get(`${API_URL}/api/auth/me`,  { 
          withCredentials :true
       ,})
 

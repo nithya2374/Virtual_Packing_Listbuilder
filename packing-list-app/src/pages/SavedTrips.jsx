@@ -6,11 +6,12 @@ import autoTable from "jspdf-autotable";
 export default function SavedTrips() {
   const [trips, setTrips] = useState([]);
   const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const fetchTrips = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/trips/fetchall", {
+        const res = await fetch(`${API_URL}/api/trips/fetchall`, {
           method: "GET",
           credentials: "include",
         });

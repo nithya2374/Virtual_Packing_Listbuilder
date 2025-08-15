@@ -6,11 +6,12 @@ import axios from "axios";
 export default function ProtectedRoute({ children }) {
   const { user, login } = useAuth();             // Get auth info from context
   const [loading, setLoading] = useState(true);  // Track loading status
-
+  const API_URL = import.meta.env.VITE_API_URL;
+  
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/auth/me", {
+        const response = await axios.get(`${API_URL}/api/auth/me`, {
           withCredentials: true,
         });
         if (response.data.user) {

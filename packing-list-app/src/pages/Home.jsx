@@ -6,6 +6,8 @@ import "./Home.css";
 export default function Home() {
   const { user } = useAuth(); 
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
   return (
     <div className="hero-section d-flex flex-column justify-content-center align-items-center text-white text-center vh-100">
       

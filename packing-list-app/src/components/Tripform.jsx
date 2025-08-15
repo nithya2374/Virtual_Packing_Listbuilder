@@ -15,6 +15,7 @@ export default function TripForm() {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const handleChange = (e) => {
     setTrip({ ...trip, [e.target.name]: e.target.value });
@@ -33,7 +34,7 @@ export default function TripForm() {
     }
 
     try {
-      const response = await axios.post("http://localhost:5000/api/trips", {
+      const response = await axios.post(`${API_URL}/api/trips`, {
         type,
         destination,
         days:parseInt(days),

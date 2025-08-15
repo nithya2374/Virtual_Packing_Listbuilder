@@ -12,7 +12,6 @@ const authMiddleware = (req, res, next) => {
   try {
     // 3. Verify the token using secret
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("JWT_SECRET:", process.env.JWT_SECRET); // confirm it has NO space
     
     // 4. Attach user info to the request
     req.user = decoded;

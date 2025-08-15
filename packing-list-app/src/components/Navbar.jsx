@@ -8,11 +8,12 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const closeSidebar = () => setIsSidebarOpen(false);
   const logoutHandler = async () => {
-      await axios.post("/api/auth/logout", { withCredentials: true });
+      await axios.post(`${API_URL}/api/auth/logout`, { withCredentials: true });
       logout(); // Clears context
       navigate('/login');
    };

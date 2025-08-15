@@ -46,7 +46,7 @@ export default function Signup() {
     }
 
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/signup", formData,
+      const response = await axios.post(`${API_URL}/api/auth/signup`, formData,
         { withCredentials: true } 
       );
     

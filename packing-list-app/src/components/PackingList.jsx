@@ -14,13 +14,14 @@ export default function PackingList() {
   const [packedStatus, setPackedStatus] = useState({});
   const [notes, setNotes] = useState([]);
   const [noteSaved, setNoteSaved] = useState(false);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTrip = async () => {
       try {
-        const { data } = await axios.get("/api/trips/latest", { withCredentials: true });
+        const { data } = await axios.get(`${API_URL}/api/trips/latest`, { withCredentials: true });
         const latest = data;
 
         setTrip(latest);
@@ -68,7 +69,7 @@ export default function PackingList() {
 
   const saveNotes = async () => {
   try {
-    await axios.put(`/api/trips/${trip._id}`, {
+    await axios.put(`${API_URL}/api/trips/${trip._id}`, {
       notes,
       customItems,
       packedItems: packedStatus,
